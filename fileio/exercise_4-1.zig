@@ -7,26 +7,27 @@
 
 const std = @import("std");
 const os = std.os;
-const warn = std.debug.warn;
+const warn = std.log.warn;
+const strcmp = std.zig.c_builtins.__builtin_strcmp;
+const O = os.O;
+const S = os.S;
 
 const BUFFER_SIZE = 1024;
-const FILE_PERMS = os.S_IRUSR | os.S_IWUSR | os.S_IRGRP | os.S_IWGRP | os.S_IROTH | os.S_IWOTH; // rw-rw-rw-
-const OPEN_FLAGS = os.O_CREAT | os.O_WRONLY;
+const FILE_PERMS = S.IRUSR | S.IWUSR | S.IRGRP | S.IWGRP | S.IROTH | S.IWOTH; // rw-rw-rw-
+const OPEN_FLAGS = O.CREAT | O.WRONLY;
 
-const Options = struct {
-    filename: [*:0]u8, open_flag: u32
-};
+const Options = struct { filename: [*:0]u8, open_flag: u32 };
 
 pub fn main() !u8 {
-    if (os.argv.len < 2 or std.cstr.cmp(os.argv[1], "--help") == 0) {
+    if (os.argv.len < 2 or strcmp(os.argv[1], "--help") == 0) {
         warn("Usage: tee [-a] output-file\n", .{});
         return 1;
     }
 
-    const options = if (std.cstr.cmp(os.argv[1], "-a") == 0)
-        Options{ .filename = os.argv[2], .open_flag = os.O_APPEND }
+    const options = if (strcmp(os.argv[1], "-a") == 0)
+        Options{ .filename = os.argv[2], .open_flag = O.APPEND }
     else
-        Options{ .filename = os.argv[1], .open_flag = os.O_TRUNC };
+        Options{ .filename = os.argv[1], .open_flag = O.TRUNC };
 
     const stdin = std.io.getStdIn().handle;
     const stdout = std.io.getStdOut().handle;
@@ -60,5 +61,5 @@ fn write_both(fd_a: c_int, fd_b: c_int, buffer: []u8) os.WriteError!u64 {
     const a_written = try os.write(fd_a, buffer);
     const b_written = try os.write(fd_b, buffer);
 
-    return std.math.min(a_written, b_written);
+    return @min(a_written, b_written);
 }
