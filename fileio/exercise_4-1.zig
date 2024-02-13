@@ -7,7 +7,7 @@
 
 const std = @import("std");
 const os = std.os;
-const warn = std.log.warn;
+const print = std.debug.print;
 const strcmp = std.zig.c_builtins.__builtin_strcmp;
 const O = os.O;
 const S = os.S;
@@ -20,7 +20,7 @@ const Options = struct { filename: [*:0]u8, open_flag: u32 };
 
 pub fn main() !u8 {
     if (os.argv.len < 2 or strcmp(os.argv[1], "--help") == 0) {
-        warn("Usage: tee [-a] output-file\n", .{});
+        print("Usage: tee [-a] output-file\n", .{});
         return 1;
     }
 
@@ -42,15 +42,15 @@ pub fn main() !u8 {
 
         if (write_both(stdout, output_fd, buffer[0..bytes_read])) |bytes_written| {
             if (bytes_written != bytes_read) {
-                warn("Error: couldn't write whole buffer ({} != {})", .{ bytes_written, bytes_read });
+                print("Error: couldn't write whole buffer ({} != {})", .{ bytes_written, bytes_read });
                 return 1;
             }
         } else |err| {
-            warn("Error: write {}", .{err});
+            print("Error: write {}", .{err});
             return 1;
         }
     } else |err| {
-        warn("Error: read {}", .{err});
+        print("Error: read {}", .{err});
         return 1;
     }
 
